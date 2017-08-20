@@ -5,103 +5,97 @@
 #include <sys/types.h>
 #include <sys/file.h>
 
-
 int main(void)
-
 {
-								pid_t child; char buffer[6]; // For file input 
+	pid_t child; char buffer[6]; // For file input 
 
-								int firstNum = 0; // Last number the file should be at (based on what is in the file)
-								FILE *fp = fopen("input.txt", "r");
-								if(fp) // Check and instantiated variables related to file
-								{
-																fscanf(fp, "%s", buffer);
-																firstNum = atoi(buffer) + 99;
-																fclose(fp);
-								}
-								else
-								{
-																fp = fopen("input.txt", "w");
-																fprintf(fp, "%d", 1);
-																firstNum = 100;
-																fclose(fp);
-								}
+	int firstNum = 0; // Last number the file should be at (based on what is in the file)
+	FILE *fp = fopen("input.txt", "r");
+	if(fp) // Check and instantiated variables related to file
+	{
+		fscanf(fp, "%s", buffer);
+		firstNum = atoi(buffer) + 99;
+		fclose(fp);
+	}
+	else
+	{
+		fp = fopen("input.txt", "w");
+		fprintf(fp, "%d", 1);
+		firstNum = 100;
+		fclose(fp);
+	}
 
-								printf("**********PLEASE ALLOW PROGRAM TO LOAD**********\n"); // flag for the user
+	printf("**********PLEASE ALLOW PROGRAM TO LOAD**********\n"); // flag for the user
 
-								if((child = fork()) == -1) // fork
-								{
-																perror("fork");
-																exit(1);
-								}
+	if((child = fork()) == -1) // fork
+	{
+		perror("fork");
+		exit(1);
+	}
 
-								while(firstNum) // Keep running program until flagged with a 0 (number will never instantiate at 0)
-								{
-																if (child == 0) // Child
+	while(firstNum) // Keep running program until flagged with a 0 (number will never instantiate at 0)
+	{
+		if (child == 0) // Child
+		{
+			FILE *fp = fopen("input.txt", "r");
 
-																{
-																								FILE *fp = fopen("input.txt", "r");
+			fscanf(fp, "%s", buffer);
 
-																								fscanf(fp, "%s", buffer);
+			int seqN = atoi(buffer); // Read number from file
 
-																								int seqN = atoi(buffer); // Read number from file
+			if(seqN > firstNum) // Flag if the files number is greater than the limit
+				firstNum = 0;
 
-																								if(seqN > firstNum) // Flag if the files number is greater than the limit
-																																firstNum = 0;
+			fclose(fp);
 
-																								fclose(fp);
+			if (seqN % 2 == 0) // Only edit or manipulate if even
+			{
+				seqN++; // Increment files value
 
-																								if (seqN % 2 == 0) // Only edit or manipulate if even
-																								{
-																																seqN++; // Increment files value
+				printf("\tN Value %d - Child PID %d\n", seqN, getpid());
 
-																																printf("\tN Value %d - Child PID %d\n", seqN, getpid());
+				fp=fopen("input.txt", "w+");
 
-																																fp=fopen("input.txt", "w+");
+				fprintf(fp, "%d", seqN); // Save new value to file
 
-																																fprintf(fp, "%d", seqN); // Save new value to file
+				fflush(fp);  // Flush File Buffer
 
-																																fflush(fp);
+				fclose(fp);
 
-																																fclose(fp);
+			}
 
-																								}
+			sleep(1); // Wait a few seconds to allow other process to run
+		}
+		else
+		{
+		  FILE *fp = fopen("input.txt", "r");
 
-																								sleep(1); // Wait a few seconds to allow other process to run
-																}
-																else
+		  fscanf(fp, "%s", buffer);
 
-																{
+		  int seqN = atoi(buffer);
 
-																								FILE *fp = fopen("input.txt", "r");
+			fclose(fp);
 
-																								fscanf(fp, "%s", buffer);
+			if(seqN > firstNum)
+						firstNum = 0;
 
-																								int seqN = atoi(buffer);
+			if (seqN % 2 != 0) // Only edit or manipulate if even
+			{
+				seqN++;
 
-																								fclose(fp);
+				printf("N Value %d - Parent PID %d\n", seqN, getpid());
 
-																								if(seqN > firstNum)
-																																firstNum = 0;
+				fp=fopen("input.txt", "w+");
 
-																								if (seqN % 2 != 0) // Only edit or manipulate if even
-																								{
-																																seqN++;
+				fprintf(fp, "%d", seqN);
 
-																																printf("N Value %d - Parent PID %d\n", seqN, getpid());
+				fflush(fp);
 
-																																fp=fopen("input.txt", "w+");
+				fclose(fp);
 
-																																fprintf(fp, "%d", seqN);
+			}
+			sleep(1); // Wait a few seconds to allow other process to run
+		}
 
-																																fflush(fp);
-
-																																fclose(fp);
-
-																								}
-
-																								sleep(1); // Wait a few seconds to allow other process to run
-																}
-
-								}
+	}
 }
