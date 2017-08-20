@@ -100,7 +100,7 @@ int main(void)
 
 																								}
 
-																								sleep(1);
+																								sleep(1); // Wait a few seconds to allow other process to run
 																}
 
 								}
